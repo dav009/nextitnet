@@ -17,6 +17,8 @@ class Data_Loader:
         vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length)
         self.item = np.array(list(vocab_processor.fit_transform(positive_examples)))
         self.item_dict = vocab_processor.vocabulary_._mapping
+        self.vocabulary = vocab_processor.vocabulary_
+        self.vocab = vocab_processor
 
 
     def load_generator_data(self, sample_size):

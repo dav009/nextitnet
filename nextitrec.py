@@ -49,16 +49,16 @@ def generatesubsequence(train_set):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--top_k', type=int, default=5,
+    parser.add_argument('--top_k', type=int, default=10,
                         help='Sample from top k predictions')
     parser.add_argument('--beta1', type=float, default=0.9,
                         help='hyperpara-Adam')
     #this is a demo dataset, which just let you run this code, suggest dataset link: http://grouplens.org/datasets/.
-    parser.add_argument('--datapath', type=str, default='Data/Session/user-filter-20000items-session5.csv',
+    parser.add_argument('--datapath', type=str, default='Data/Session/',
                         help='data path')
-    parser.add_argument('--eval_iter', type=int, default=1000,
+    parser.add_argument('--eval_iter', type=int, default=100,
                         help='Sample generator output evry x steps')
-    parser.add_argument('--save_para_every', type=int, default=1000,
+    parser.add_argument('--save_para_every', type=int, default=100,
                         help='save model parameters every')
     parser.add_argument('--tt_percentage', type=float, default=0.2,
                         help='0.2 means 80% training 20% testing')
@@ -66,12 +66,15 @@ def main():
                         help='whether generating a subsessions, e.g., 12345-->01234,00123,00012  It may be useful for very some very long sequences')
     args = parser.parse_args()
 
+    training_path = args.datapath + "/" + "training.csv"
+    model_path = args.datapath + "/" + "model.ckpt"
+    vocab_path = args.datapath + "/" + "vocab.pickle"
 
-
-    dl = data_loader_recsys.Data_Loader({'model_type': 'generator', 'dir_name': args.datapath})
+    dl = data_loader_recsys.Data_Loader({'model_type': 'generator', 'dir_name': training_path})
     all_samples = dl.item
     items = dl.item_dict
     print "len(items)",len(items)
+    dl.vocab.save(vocab_path)
 
 
     # Randomly shuffle data
@@ -96,9 +99,9 @@ def main():
         # when you change it do not forget to change it in nextitrec_generate.py
         'dilations': [1, 2, 1, 2, 1, 2, ],#YOU should tune this hyper-parameter, refer to the paper.
         'kernel_size': 3,
-        'learning_rate':0.001,#YOU should tune this hyper-parameter
-        'batch_size':128,#YOU should tune this hyper-parameter
-        'iterations':400,# if your dataset is small, suggest adding regularization to prevent overfitting
+        'learning_rate': 0.006,#YOU should tune this hyper-parameter
+        'batch_size': 300,#YOU should tune this hyper-parameter
+        'iterations': 40,# if your dataset is small, suggest adding regularization to prevent overfitting
         'is_negsample':False #False denotes no negative sampling
     }
 
@@ -222,8 +225,8 @@ def main():
                 # print "---------------------------Test Accuray----------------------------"
             numIters += 1
             if numIters % args.save_para_every == 0:
-                save_path = saver.save(sess,
-                                       "Data/Models/generation_model/model_nextitnet.ckpt".format(iter, numIters))
+                print("saving..")
+                save_path = saver.save(sess, model_path)
 
 
 if __name__ == '__main__':
