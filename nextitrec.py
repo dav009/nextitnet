@@ -69,7 +69,7 @@ def main():
     parser.add_argument("--learning_rate", type=float, default=0.008, help='learning rate')
     parser.add_argument("--kernel_size", type=int, default=3, help="kernel size")
     parser.add_argument("--batch_size", type=int, default=300, help="batch size")
-    parser.add_argugment("--max_seq_size", type=int, default=80, help="max seq len")
+    parser.add_argument("--max_seq_size", type=int, default=80, help="max seq len")
     parser.add_argument('--is_generatesubsession', type=bool, default=False,
                         help='whether generating a subsessions, e.g., 12345-->01234,00123,00012  It may be useful for very some very long sequences')
     args = parser.parse_args()
