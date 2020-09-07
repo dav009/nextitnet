@@ -34,7 +34,7 @@ class Data_Loader:
         return item_dict, new_samples, inverted_item_dict
 
             
-    def __init__(self, options):
+    def __init__(self, options, max_seq_size=80):
 
         positive_data_file = options['dir_name']
         positive_examples = list(open(positive_data_file, "r").readlines())
@@ -43,7 +43,7 @@ class Data_Loader:
 
         #max_document_length = max([len(x.split(",")) for x in positive_examples])
         #vocab_processor = learn.preprocessing.VocabularyProcessor(max_document_length)
-        item_dict, new_samples, inverted_item_dict = self.fit_transform(positive_examples)
+        item_dict, new_samples, inverted_item_dict = self.fit_transform(positive_examples, max_seq_size=max_seq_size)
 
         
         
