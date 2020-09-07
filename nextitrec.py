@@ -78,7 +78,7 @@ def main():
     model_path = args.datapath + "/" + "model.ckpt"
     vocab_path = args.datapath + "/" + "vocab.pickle"
 
-    dl = data_loader_recsys.Data_Loader({'model_type': 'generator', 'dir_name': training_path}, max_seq_size=self.max_seq_size)
+    dl = data_loader_recsys.Data_Loader({'model_type': 'generator', 'dir_name': training_path}, max_seq_size=args.max_seq_size)
     all_samples = dl.item
     items = dl.item_dict
     print("len(items)")
