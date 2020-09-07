@@ -57,8 +57,8 @@ def main():
         'dilated_channels': 100,
         'dilations': [1, 2, 1, 2, 1, 2, ],
         'kernel_size': 3,
-        'learning_rate':0.001,
-        'batch_size':128,
+        'learning_rate':0.008,
+        'batch_size':300,
         'iterations':2,#useless, can be removed
         'is_negsample':False #False denotes no negative sampling
     }

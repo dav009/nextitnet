@@ -5,6 +5,7 @@ import data_loader_recsys
 import utils
 import argparse
 from tensorflow.contrib import learn
+import json
 
 app = Flask(__name__)
 sess = tf.Session()
@@ -22,8 +23,8 @@ def load_model(n_items, path):
         'dilated_channels': 100,
         'dilations': [1, 2, 1, 2, 1, 2, ],
         'kernel_size': 3,
-        'learning_rate': 0.001,
-        'batch_size': 128,
+        'learning_rate': 0.008,
+        'batch_size': 300,
         'is_negsample': False
     }
     itemrec = generator_recsys.NextItNet_Decoder(model_params)
@@ -39,32 +40,47 @@ def get_dataset(path):
     vocab = learn.preprocessing.VocabularyProcessor.restore(path)
     item_dict = vocab.vocabulary_._mapping
     vocabulary = vocab.vocabulary_
-    return item_dict, vocabulary 
+    print("len item dict")
+    print(len(item_dict))
+    return item_dict, vocabulary, vocab
 
 
 
 
-item_dict, vocabulary = get_dataset(vocab_path)
-model = load_model(len(item_dict), model_path)
-
+#item_dict, vocabulary,vocabprocessor  = get_dataset(vocab_path)
+item_dict = json.load(open(vocab_path, 'r'))
+model = load_model(len(item_dict)+1, model_path)
+vocabulary = json.load(open(vocab_path+"inverted", 'r'))
 
 def pad_sequence(user_profile, max_seq_size):
+
     if max_seq_size > len(user_profile):
         dif = max_seq_size - len(user_profile)
         # fill gaps with UNK (0) interaction as suggested in docs
-        pads = ["0"] * dif
+        pads = [0] * dif
         return pads + user_profile
-    else:
-        # in this case use only the last n interactions
-        return user_profile[-max_seq_size:]
+    return user_profile
+    #else:
+     #   # in this case use only the last n interactions
+     #   return user_profile[-max_seq_size:]
 
 
 def prepare_sequence(user_profile, item_dict):
+    print("sent to vocabproc")
+    print(",".join(user_profile))
+    #by_vocab = vocabprocessor.fit_transform([",".join(user_profile)])
+    #print("by vocab")
+    #all_by_vocab = []
+    #for i in by_vocab:
+    #    print(type(i))
+    #    print(i.tolist())
+    #    all_by_vocab.append(i.tolist())
     # use UNK token for interactions with unseen items
-    user_profile = [item_dict[str(i)] if str(i) in item_dict else "0" for i in user_profile]
-    #user_profile = pad_sequence(user_profile, max_seq_size)
+    user_profile = [item_dict[str(i)] if str(i) in item_dict else -1 for i in user_profile]
+    max_seq_size = 80
+    user_profile = pad_sequence(user_profile, max_seq_size)
     return [user_profile]
-    
+    #return all_by_vocab
 
 def recommend(model, user_profile, item_dict, vocabulary, top_k=10):
     input_sequence = prepare_sequence(user_profile, item_dict)
@@ -77,7 +93,7 @@ def recommend(model, user_profile, item_dict, vocabulary, top_k=10):
     #print(probs)
     if probs.shape[0] > 0:
         pred_items = utils.sample_top_k_with_scores(probs[0][-1], top_k=top_k)
-        predictions = [(vocabulary.reverse(item_token),score) for (item_token, score) in pred_items]
+        predictions = [(vocabulary[str(item_token)],score) if str(item_token) in vocabulary else ("[UNK]", score) for (item_token, score) in pred_items]
         print("predictions")
         print(predictions)
         return predictions

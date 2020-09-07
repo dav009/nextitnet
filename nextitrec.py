@@ -6,6 +6,8 @@ import shutil
 import time
 import math
 import eval
+import json
+import sys
 import numpy as np
 import argparse
 
@@ -73,8 +75,18 @@ def main():
     dl = data_loader_recsys.Data_Loader({'model_type': 'generator', 'dir_name': training_path})
     all_samples = dl.item
     items = dl.item_dict
-    print "len(items)",len(items)
-    dl.vocab.save(vocab_path)
+    print("len(items)")
+    print(len(all_samples))
+
+    with open(vocab_path, 'w') as fp:
+        json.dump(items, fp)
+
+    with open(vocab_path+"inverted", 'w') as fp:
+        json.dump(dl.vocabulary, fp)
+ 
+    sys.exit()
+    
+    #dl.vocab.save(vocab_path)
 
 
     # Randomly shuffle data
@@ -92,16 +104,16 @@ def main():
 
     model_para = {
         #if you changed the parameters here, also do not forget to change paramters in nextitrec_generate.py
-        'item_size': len(items),
+        'item_size': len(items)+ 1,
         'dilated_channels': 100,#larger is better until 512 or 1024
         # if you use nextitnet_residual_block, you can use [1, 4, 1, 4, 1,4,],
         # if you use nextitnet_residual_block_one, you can tune and i suggest [1, 2, 4, ], for a trial
         # when you change it do not forget to change it in nextitrec_generate.py
         'dilations': [1, 2, 1, 2, 1, 2, ],#YOU should tune this hyper-parameter, refer to the paper.
         'kernel_size': 3,
-        'learning_rate': 0.006,#YOU should tune this hyper-parameter
+        'learning_rate': 0.008,#YOU should tune this hyper-parameter
         'batch_size': 300,#YOU should tune this hyper-parameter
-        'iterations': 40,# if your dataset is small, suggest adding regularization to prevent overfitting
+        'iterations': 2,# if your dataset is small, suggest adding regularization to prevent overfitting probably bump this to 100
         'is_negsample':False #False denotes no negative sampling
     }
 
@@ -114,9 +126,6 @@ def main():
     init=tf.global_variables_initializer()
     sess.run(init)
     saver = tf.train.Saver()
-
-
-
 
     numIters = 1
     for iter in range(model_para['iterations']):
