@@ -68,6 +68,8 @@ def main():
     parser.add_argument("--dilated_channels", type=int, default=100, help='number of dilated channels')
     parser.add_argument("--learning_rate", type=float, default=0.008, help='learning rate')
     parser.add_argument("--kernel_size", type=int, default=3, help="kernel size")
+    parser.add_argument("--batch_size", type=int, default=300, help="batch size")
+    parser.add_argugment("--max_seq_size", type=int, default=80, help="max seq len")
     parser.add_argument('--is_generatesubsession', type=bool, default=False,
                         help='whether generating a subsessions, e.g., 12345-->01234,00123,00012  It may be useful for very some very long sequences')
     args = parser.parse_args()
@@ -76,7 +78,7 @@ def main():
     model_path = args.datapath + "/" + "model.ckpt"
     vocab_path = args.datapath + "/" + "vocab.pickle"
 
-    dl = data_loader_recsys.Data_Loader({'model_type': 'generator', 'dir_name': training_path})
+    dl = data_loader_recsys.Data_Loader({'model_type': 'generator', 'dir_name': training_path}, max_seq_size=self.max_seq_size)
     all_samples = dl.item
     items = dl.item_dict
     print("len(items)")

@@ -15,6 +15,8 @@ parser.add_argument('--datapath', type=str, default='Data/Session/')
 parser.add_argument("--dilated_channels", type=int, default=100, help='number of dilated channels')
 parser.add_argument("--learning_rate", type=float, default=0.008, help='learning rate')
 parser.add_argument("--kernel_size", type=int, default=3, help="kernel size")
+parser.add_argument("--batch_size", type=int, default=300, help="batch size")
+parser.add_argugment("--max_seq_size", type=int, default=80, help="max seq len")
 args = parser.parse_args()
 model_path = args.datapath  + "/" + "model.ckpt"
 vocab_path = args.datapath + "/" + "vocab.pickle"
@@ -66,14 +68,13 @@ def pad_sequence(user_profile, max_seq_size):
     return user_profile
 
 
-def prepare_sequence(user_profile, item_dict):
+def prepare_sequence(user_profile, item_dict, max_seq_size):
     user_profile = [item_dict[str(i)] if str(i) in item_dict else -1 for i in user_profile]
-    max_seq_size = 80
     user_profile = pad_sequence(user_profile, max_seq_size)
     return [user_profile]
 
-def recommend(model, user_profile, item_dict, vocabulary, top_k=10):
-    input_sequence = prepare_sequence(user_profile, item_dict)
+def recommend(model, user_profile, item_dict, vocabulary, max_seq_size, top_k=10):
+    input_sequence = prepare_sequence(user_profile, item_dict, max_seq_size)
     print("original input")
     print(user_profile)
     print("prepared input sequence")
@@ -93,7 +94,8 @@ def recommend(model, user_profile, item_dict, vocabulary, top_k=10):
 def recommend_endpoint():
     request_data = request.json
     user_profile = request_data['user_profile']
-    probs = recommend(model, user_profile, item_dict, vocabulary)
+    max_seq_size = args.max_seq_size
+    probs = recommend(model, user_profile, item_dict, vocabulary, max_seq_size)
     json_serializable = [(i, str(score)) for i, score in probs]
     return jsonify({"items": json_serializable})
 
