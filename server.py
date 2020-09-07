@@ -12,6 +12,9 @@ sess = tf.Session()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--datapath', type=str, default='Data/Session/')
+parser.add_argument("--dilated_channels", type=int, default=100, help='number of dilated channels')
+parser.add_argument("--learning_rate", type=float, default=0.008, help='learning rate')
+parser.add_argument("--kernel_size", type=int, default=3, help="kernel size")
 args = parser.parse_args()
 model_path = args.datapath  + "/" + "model.ckpt"
 vocab_path = args.datapath + "/" + "vocab.pickle"
@@ -20,11 +23,11 @@ vocab_path = args.datapath + "/" + "vocab.pickle"
 def load_model(n_items, path):
     model_params = {
         'item_size': n_items,
-        'dilated_channels': 100,
+        'dilated_channels': args.dilated_channels,
         'dilations': [1, 2, 1, 2, 1, 2, ],
-        'kernel_size': 3,
-        'learning_rate': 0.008,
-        'batch_size': 300,
+        'kernel_size': args.kernel_size,
+        'learning_rate': args.learning_rate,
+        'batch_size': args.batch_size,
         'is_negsample': False
     }
     itemrec = generator_recsys.NextItNet_Decoder(model_params)
@@ -59,28 +62,15 @@ def pad_sequence(user_profile, max_seq_size):
         # fill gaps with UNK (0) interaction as suggested in docs
         pads = [0] * dif
         return pads + user_profile
+    # longer sequences are not a problem according to the readme
     return user_profile
-    #else:
-     #   # in this case use only the last n interactions
-     #   return user_profile[-max_seq_size:]
 
 
 def prepare_sequence(user_profile, item_dict):
-    print("sent to vocabproc")
-    print(",".join(user_profile))
-    #by_vocab = vocabprocessor.fit_transform([",".join(user_profile)])
-    #print("by vocab")
-    #all_by_vocab = []
-    #for i in by_vocab:
-    #    print(type(i))
-    #    print(i.tolist())
-    #    all_by_vocab.append(i.tolist())
-    # use UNK token for interactions with unseen items
     user_profile = [item_dict[str(i)] if str(i) in item_dict else -1 for i in user_profile]
     max_seq_size = 80
     user_profile = pad_sequence(user_profile, max_seq_size)
     return [user_profile]
-    #return all_by_vocab
 
 def recommend(model, user_profile, item_dict, vocabulary, top_k=10):
     input_sequence = prepare_sequence(user_profile, item_dict)
@@ -89,8 +79,6 @@ def recommend(model, user_profile, item_dict, vocabulary, top_k=10):
     print("prepared input sequence")
     print(input_sequence)
     [probs] = sess.run([model.g_probs], feed_dict={model.input_predict: input_sequence})
-    #print("probs")
-    #print(probs)
     if probs.shape[0] > 0:
         pred_items = utils.sample_top_k_with_scores(probs[0][-1], top_k=top_k)
         predictions = [(vocabulary[str(item_token)],score) if str(item_token) in vocabulary else ("[UNK]", score) for (item_token, score) in pred_items]
@@ -99,10 +87,6 @@ def recommend(model, user_profile, item_dict, vocabulary, top_k=10):
         return predictions
     print("empty pred")
     return []
-
-
-#probs = recommend(model, ["b2d489fa-d57d-4d29-9a7a-120b7febd703", "b2d489fa-d57d-4d29-9a7a-120b7febd703""xxx"], item_dict, vocabulary)
-#print(probs)
 
 
 @app.route('/recommend', methods=['POST'])

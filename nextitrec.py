@@ -64,6 +64,10 @@ def main():
                         help='save model parameters every')
     parser.add_argument('--tt_percentage', type=float, default=0.2,
                         help='0.2 means 80% training 20% testing')
+    parser.add_argument("--iterations", type=int, default=2, help='number of training iterations')
+    parser.add_argument("--dilated_channels", type=int, default=100, help='number of dilated channels')
+    parser.add_argument("--learning_rate", type=float, default=0.008, help='learning rate')
+    parser.add_argument("--kernel_size", type=int, default=3, help="kernel size")
     parser.add_argument('--is_generatesubsession', type=bool, default=False,
                         help='whether generating a subsessions, e.g., 12345-->01234,00123,00012  It may be useful for very some very long sequences')
     args = parser.parse_args()
@@ -84,10 +88,6 @@ def main():
     with open(vocab_path+"inverted", 'w') as fp:
         json.dump(dl.vocabulary, fp)
  
-    sys.exit()
-    
-    #dl.vocab.save(vocab_path)
-
 
     # Randomly shuffle data
     np.random.seed(10)
@@ -105,15 +105,15 @@ def main():
     model_para = {
         #if you changed the parameters here, also do not forget to change paramters in nextitrec_generate.py
         'item_size': len(items)+ 1,
-        'dilated_channels': 100,#larger is better until 512 or 1024
+        'dilated_channels': args.dilated_channels,#larger is better until 512 or 1024
         # if you use nextitnet_residual_block, you can use [1, 4, 1, 4, 1,4,],
         # if you use nextitnet_residual_block_one, you can tune and i suggest [1, 2, 4, ], for a trial
         # when you change it do not forget to change it in nextitrec_generate.py
         'dilations': [1, 2, 1, 2, 1, 2, ],#YOU should tune this hyper-parameter, refer to the paper.
-        'kernel_size': 3,
-        'learning_rate': 0.008,#YOU should tune this hyper-parameter
-        'batch_size': 300,#YOU should tune this hyper-parameter
-        'iterations': 2,# if your dataset is small, suggest adding regularization to prevent overfitting probably bump this to 100
+        'kernel_size': args.kernel_size,
+        'learning_rate': args.learning_rate,#YOU should tune this hyper-parameter
+        'batch_size': args.batch_size,#YOU should tune this hyper-parameter
+        'iterations': args.iterations,# if your dataset is small, suggest adding regularization to prevent overfitting probably bump this to 100
         'is_negsample':False #False denotes no negative sampling
     }
 
