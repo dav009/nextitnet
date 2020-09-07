@@ -16,7 +16,7 @@ parser.add_argument("--dilated_channels", type=int, default=100, help='number of
 parser.add_argument("--learning_rate", type=float, default=0.008, help='learning rate')
 parser.add_argument("--kernel_size", type=int, default=3, help="kernel size")
 parser.add_argument("--batch_size", type=int, default=300, help="batch size")
-parser.add_argugment("--max_seq_size", type=int, default=80, help="max seq len")
+parser.add_argument("--max_seq_size", type=int, default=80, help="max seq len")
 args = parser.parse_args()
 model_path = args.datapath  + "/" + "model.ckpt"
 vocab_path = args.datapath + "/" + "vocab.pickle"
@@ -49,10 +49,6 @@ def get_dataset(path):
     print(len(item_dict))
     return item_dict, vocabulary, vocab
 
-
-
-
-#item_dict, vocabulary,vocabprocessor  = get_dataset(vocab_path)
 item_dict = json.load(open(vocab_path, 'r'))
 model = load_model(len(item_dict)+1, model_path)
 vocabulary = json.load(open(vocab_path+"inverted", 'r'))
